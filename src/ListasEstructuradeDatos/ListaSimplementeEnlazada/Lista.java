@@ -77,7 +77,6 @@ public class Lista<T> implements ListaTAD<T> {
 
         actual.setSiguiente(eliminarRec(actual.getSiguiente(), elemento));
 
-
         return actual;
     }
 }
