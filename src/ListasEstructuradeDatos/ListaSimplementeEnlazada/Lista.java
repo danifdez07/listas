@@ -80,5 +80,4 @@ public class Lista<T> implements ListaTAD<T> {
 
         return actual;
     }
-
 }
