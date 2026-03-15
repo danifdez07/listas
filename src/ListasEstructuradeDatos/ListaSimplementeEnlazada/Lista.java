@@ -168,17 +168,17 @@ public class Lista<T> implements ListaTAD<T> {
 
     }
     public void intercalar(ListaTAD<T> otraLista) {//intercala listas
-        if (!(otraLista instanceof Lista<?>)) return;
+        if (!(otraLista instanceof Lista<?>)) return;//mira esa Lista<?> sin importar q clase dew dato haya dentro
 
-
+        @SuppressWarnings("unchecked")
         Lista<T> otraListaReal = (Lista<T>) otraLista;
 
         Nodo<T> miActual = this.cabeza;
         Nodo<T> otroActual = otraListaReal.cabeza;
-        Nodo<T> miSiguiente;
+        Nodo<T> miSiguiente;//preparamos dos variables para usarlas dsps
         Nodo<T> otroSiguiente;
 
-        while (miActual != null && otroActual != null) {
+        while (miActual != null && otroActual != null) {//vamos intercalando las listas haciendo como una trenza que se combierte en una sola para luego poder imprimirlas en el orden que se desee
             miSiguiente = miActual.getSiguiente();
             otroSiguiente = otroActual.getSiguiente();
 
