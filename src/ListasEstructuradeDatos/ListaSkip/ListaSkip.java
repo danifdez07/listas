@@ -23,7 +23,7 @@ public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se
     }
 
     public void insertar(T elemento) {
-        @SuppressWarnings("unchecked")
+        @SuppressWarnings("unchecked") //Excepcion
         NodoSkip<T>[] actualizacion = new NodoSkip[MAX_NIVEL + 1];
         NodoSkip<T> actual = this.cabeza;
 
@@ -80,7 +80,7 @@ public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se
                 actualizacion[i].setSiguiente(i, actual.getSiguiente(i));//hacemos q el array apunte al siguiente elemento al del elemento q buscamos
             }
             while (nivelActual > 0 && cabeza.getSiguiente(nivelActual) == null) {
-                nivelActual--;// con esto unimos lo de arriba para que no se elimine todo
+                nivelActual--;// con esto unimos lo de arriba para que no se elimine
             }
             return true;
         }

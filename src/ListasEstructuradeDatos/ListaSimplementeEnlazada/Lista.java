@@ -81,7 +81,7 @@ public class Lista<T> implements ListaTAD<T> {
     }
     public void invertir(){
         if(cabeza == null){
-            return;
+            cabeza=null;
         }
         Nodo<T> anterior = null;
         Nodo<T> actual = cabeza;
