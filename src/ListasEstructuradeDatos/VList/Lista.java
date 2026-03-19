@@ -1,49 +1,67 @@
 package ListasEstructuradeDatos.VList;
 
+/**
+ * Estructura de datos VList (Lista V).
+ * Combina la flexibilidad de crecimiento dinámico de las listas enlazadas
+ * con la eficiencia de acceso a memoria de los arrays. Crece asignando
+ * bloques de memoria cada vez más grandes de forma geométrica.
+ */
 public class Lista<T> {
     private Nodo<T> cabeza;
 
+    /**
+     * Inicializa una nueva estructura VList.
+     * Comienza creando un bloque base inicial con capacidad para un solo elemento.
+     */
     public Lista() {
-        // El estado inicial es un subespacio de dimensión 2^0 = 1
         this.cabeza = new Nodo<>(1);
     }
 
+    /**
+     * Añade un nuevo elemento a la estructura.
+     * Si el bloque actual está lleno, genera automáticamente un nuevo bloque
+     * con el doble de capacidad que el anterior y lo enlaza como la nueva cabeza,
+     * garantizando un coste de inserción muy eficiente.
+     * @param elemento El dato que se desea almacenar.
+     */
     public void insertar(T elemento) {
-        // Verificamos si el vector actual ha alcanzado su capacidad máxima
         if (this.cabeza.getElementosUsados() == this.cabeza.getElementos().length) {
-
-            // Progresión geométrica: definimos un nuevo bloque con tamaño 2^n
-            // Esto garantiza que el coste de inserción amortizado sea O(1)
             Nodo<T> nuevoBloque = new Nodo<>(this.cabeza.getElementos().length * 2);
-
-            // Reestructuramos la jerarquía de la lista (LIFO)
             nuevoBloque.setSiguiente(this.cabeza);
             this.cabeza = nuevoBloque;
         }
 
-        // Mapeo del elemento en la siguiente posición disponible del array
         int pos = this.cabeza.getElementosUsados();
         this.cabeza.getElementos()[pos] = elemento;
         this.cabeza.setElementosUsados(pos + 1);
     }
 
+    /**
+     * Busca de manera secuencial si un elemento existe dentro de la estructura.
+     * Recorre los bloques y examina sus arrays internos, aprovechando la localidad
+     * de referencia para realizar lecturas rápidas.
+     * @param elemento El dato que se desea localizar.
+     * @return true si el elemento se encuentra en algún bloque, false si no existe.
+     */
     public boolean buscar(T elemento) {
         Nodo<T> actual = this.cabeza;
 
-        // Recorrido por los bloques (nodos) de la estructura
         while (actual != null) {
-            // Aprovechamos la localidad de referencia: leer un array es más rápido para la CPU
             for (int i = 0; i < actual.getElementosUsados(); i++) {
                 if (actual.getElementos()[i].equals(elemento)) {
                     return true;
                 }
             }
-            // Saltamos al siguiente subconjunto si no está en el bloque actual
             actual = actual.getSiguiente();
         }
         return false;
     }
 
+    /**
+     * Muestra por consola el estado actual de la estructura de memoria.
+     * Imprime cada bloque detallando su capacidad máxima y los elementos
+     * que contiene actualmente ordenados por inserción.
+     */
     public void imprimir() {
         Nodo<T> actual = this.cabeza;
         while (actual != null) {

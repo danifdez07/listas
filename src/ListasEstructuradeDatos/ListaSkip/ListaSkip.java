@@ -2,40 +2,81 @@ package ListasEstructuradeDatos.ListaSkip;
 
 import java.util.Random;
 
-public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se puedan comparar
+/**
+ * Estructura de datos que almacena elementos de forma ordenada.
+ * Utiliza múltiples niveles de enlaces para permitir búsquedas, inserciones
+ * y eliminaciones mucho más rápidas que una lista tradicional, ya que es capaz
+ * de saltar grupos de elementos en lugar de revisarlos uno por uno.
+ */
+public class ListaSkip<T extends Comparable<T>> {
     private static final int MAX_NIVEL = 16;
     private NodoSkip<T> cabeza;
     private int nivelActual;
     private Random random;
+    private int tamano;
 
+    /**
+     * Inicializa una lista vacía preparándola para almacenar datos.
+     * Crea un punto de inicio (cabeza) y configura el generador de aleatoriedad
+     * que mantendrá la estructura balanceada.
+     */
     public ListaSkip() {
         this.cabeza = new NodoSkip<>(null, MAX_NIVEL);
         this.nivelActual = 0;
         this.random = new Random();
+        this.tamano = 0;
     }
 
+    /**
+     * Genera un nivel aleatorio para un nuevo elemento que se va a insertar.
+     * Determina en cuántos "niveles de salto rápido" participará el dato,
+     * lo cual es clave para mantener la velocidad de la estructura.
+     * @return El número de niveles asignado.
+     */
     private int lanzarMoneda() {
         int nivel = 0;
-        while (nivel < MAX_NIVEL && random.nextBoolean()) {// iguala el nivel al maximo
+        while (nivel < MAX_NIVEL && random.nextBoolean()) {
             nivel++;
         }
         return nivel;
     }
 
+    /**
+     * Devuelve la cantidad de elementos almacenados actualmente.
+     * @return El tamaño de la lista.
+     */
+    public int getTamaño() {
+        return tamano;
+    }
+
+    /**
+     * Comprueba si la estructura no contiene ningún dato.
+     * @return true si la lista está vacía, false en caso contrario.
+     */
+    public boolean estaVacia() {
+        return tamano == 0;
+    }
+
+    /**
+     * Añade un nuevo elemento a la lista manteniendo automáticamente el orden
+     * de menor a mayor. Ajusta las conexiones internas para que el dato sea
+     * fácilmente localizable en el futuro.
+     * @param elemento El dato o valor que se va a guardar.
+     */
     public void insertar(T elemento) {
-        @SuppressWarnings("unchecked") //Excepcion
+        @SuppressWarnings("unchecked")
         NodoSkip<T>[] actualizacion = new NodoSkip[MAX_NIVEL + 1];
         NodoSkip<T> actual = this.cabeza;
 
         for (int i = nivelActual; i >= 0; i--) {
-            while (actual.getSiguiente(i) != null && actual.getSiguiente(i).getDato().compareTo(elemento) < 0) {// hacemos un bucle q se mantenga siempre y cuando el siguiente i veces del actual no sea nulo y menor al elemento
+            while (actual.getSiguiente(i) != null && actual.getSiguiente(i).getDato().compareTo(elemento) < 0) {
                 actual = actual.getSiguiente(i);
             }
             actualizacion[i] = actual;
         }
 
         int nuevoNivel = lanzarMoneda();
-        if (nuevoNivel > nivelActual) { // si el nivel obtenido al lanzar la moneda es mayor al actual se mete al for y pasamos el i numero de la lisata a la cabeza
+        if (nuevoNivel > nivelActual) {
             for (int i = nivelActual + 1; i <= nuevoNivel; i++) {
                 actualizacion[i] = cabeza;
             }
@@ -43,12 +84,22 @@ public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se
         }
 
         NodoSkip<T> nuevoNodo = new NodoSkip<>(elemento, nuevoNivel);
-        for (int i = 0; i <= nuevoNivel; i++) {//subimos el numero de i para q sea mayor al nivelactual y se pueda meter al if
+
+        // Empalme de punteros para insertar el elemento
+        for (int i = 0; i <= nuevoNivel; i++) {
             nuevoNodo.setSiguiente(i, actualizacion[i].getSiguiente(i));
             actualizacion[i].setSiguiente(i, nuevoNodo);
         }
+        this.tamano++;
     }
 
+    /**
+     * Comprueba de forma eficiente si un elemento específico ya existe.
+     * Aprovecha los niveles de salto para descartar grandes bloques de datos
+     * rápidamente y encontrar el resultado en el menor tiempo posible.
+     * @param elemento El dato que se desea buscar.
+     * @return true si el elemento está guardado en la estructura, false si no se encuentra.
+     */
     public boolean buscar(T elemento) {
         NodoSkip<T> actual = this.cabeza;
         for (int i = nivelActual; i >= 0; i--) {
@@ -57,15 +108,21 @@ public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se
             }
         }
         actual = actual.getSiguiente(0);
-        return actual != null && actual.getDato().equals(elemento);// una vez se sale del while y del for nos da un elemento actual distinto a lp nulo y al elemento
+        return actual != null && actual.getDato().equals(elemento);
     }
 
+    /**
+     * Busca y elimina un elemento, reorganizando automáticamente las conexiones
+     * internas para que la estructura siga funcionando correctamente y no queden huecos.
+     * @param elemento El dato que se desea eliminar.
+     * @return true si el elemento se encontró y se eliminó con éxito, false si no existía.
+     */
     public boolean eliminar(T elemento) {
         @SuppressWarnings("unchecked")
-        NodoSkip<T>[] actualizacion = new NodoSkip[MAX_NIVEL + 1];//array para saber por dnd vamos
+        NodoSkip<T>[] actualizacion = new NodoSkip[MAX_NIVEL + 1];
         NodoSkip<T> actual = this.cabeza;
 
-        for (int i = nivelActual; i >= 0; i--) {//como empezamos desde arriba vamos bajando mientras q el siguiente numero sea distinto a null y menor al q buscamos
+        for (int i = nivelActual; i >= 0; i--) {
             while (actual.getSiguiente(i) != null && actual.getSiguiente(i).getDato().compareTo(elemento) < 0) {
                 actual = actual.getSiguiente(i);
             }
@@ -74,19 +131,26 @@ public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se
 
         actual = actual.getSiguiente(0);
 
-        if (actual != null && actual.getDato().equals(elemento)) {// esto es para cuando encontramos al elemento
-            for (int i = 0; i <= nivelActual; i++) {//subimos desde abajo de la lista
+        if (actual != null && actual.getDato().equals(elemento)) {
+            for (int i = 0; i <= nivelActual; i++) {
                 if (actualizacion[i].getSiguiente(i) != actual) break;
-                actualizacion[i].setSiguiente(i, actual.getSiguiente(i));//hacemos q el array apunte al siguiente elemento al del elemento q buscamos
+                actualizacion[i].setSiguiente(i, actual.getSiguiente(i));
             }
+
+            // Reducción de la altura máxima si los niveles superiores quedan vacíos
             while (nivelActual > 0 && cabeza.getSiguiente(nivelActual) == null) {
-                nivelActual--;// con esto unimos lo de arriba para que no se elimine
+                nivelActual--;
             }
+            this.tamano--;
             return true;
         }
         return false;
     }
 
+    /**
+     * Muestra por consola el contenido completo de la estructura, nivel por nivel.
+     * Útil para visualizar cómo están distribuidos los datos internamente.
+     */
     public void imprimir() {
         for (int i = nivelActual; i >= 0; i--) {
             NodoSkip<T> actual = cabeza.getSiguiente(i);
@@ -97,5 +161,46 @@ public class ListaSkip<T extends Comparable<T>> { // hace q los datos metidos se
             }
             System.out.println("null");
         }
+    }
+
+    /**
+     * Obtiene el elemento con el valor más bajo almacenado.
+     * Al estar la lista ordenada internamente, la recuperación de este dato es inmediata.
+     * @return El dato menor, o null si la lista está vacía.
+     */
+    public T obtenerMinimo() {
+        if (estaVacia()) {
+            return null;
+        } else {
+            return cabeza.getSiguiente(0).getDato();
+        }
+    }
+
+    /**
+     * Obtiene el elemento con el valor más alto almacenado.
+     * Utiliza la ruta más rápida posible para desplazarse hasta el final de los datos.
+     * @return El dato mayor, o null si la lista está vacía.
+     */
+    public T obtenerMaximo() {
+        if (estaVacia()) {
+            return null;
+        }
+
+        NodoSkip<T> actual = this.cabeza;
+        for (int i = nivelActual; i >= 0; i--) {
+            while (actual.getSiguiente(i) != null) {
+                actual = actual.getSiguiente(i);
+            }
+        }
+        return actual.getDato();
+    }
+
+    /**
+     * Elimina todos los elementos de la estructura y la devuelve a su estado inicial.
+     */
+    public void vaciar() {
+        this.cabeza = new NodoSkip<>(null, MAX_NIVEL);
+        this.nivelActual = 0;
+        this.tamano = 0;
     }
 }
